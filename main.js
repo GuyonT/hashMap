@@ -1,205 +1,116 @@
 class ListNode {
-  constructor(value) {
+  constructor(key, value) {
+    this.key = key;
     this.value = value;
     this.nextNode = null;
   }
 }
+
 class LinkedList {
   constructor() {
     this.head = null;
     this.tail = null;
-    this.size = 0;
   }
 
-  append(value) {
-    let newNode = new ListNode(value);
-    console.log(newNode);
+  prepend(key, value) {
+    let newNode = new ListNode(key, value);
     if (this.head === null) {
       this.head = newNode;
       this.tail = newNode;
-      this.size++;
-    } else {
-      this.tail.nextNode = newNode;
-      this.tail = newNode;
-      this.size++;
-    }
-  }
-
-  prepend(value) {
-    let newNode = new ListNode(value);
-    if (this.head === null) {
-      this.head = newNode;
-      this.tail = newNode;
-      this.size++;
     } else {
       newNode.nextNode = this.head;
       this.head = newNode;
-      this.size++;
     }
   }
 
-  getSize() {
-    return this.size;
-  }
-
-  getHead() {
-    return this.head.value;
-  }
-
-  getTail() {
-    return this.tail.value;
-  }
-
-  at(index) {
-    if (this.head === null || index < 0) {
-      return null;
-    }
-
-    let currentNode = this.head;
-    let i = 0;
-
-    while (i < index && currentNode !== null) {
-      currentNode = currentNode.nextNode;
-      i++;
-    }
-
-    if (currentNode === null) {
-      return null;
-    } else {
-      return currentNode.value;
-    }
-  }
-
-  pop() {
-    if (this.head === null) {
-      console.log("The list is already empty");
-    } else if (this.head === this.tail) {
-      this.head = this.tail = null;
-      this.size = 0;
-    } else {
-      let currentNode = this.head;
-      while (currentNode.nextNode !== this.tail) {
-        currentNode = currentNode.nextNode;
-      }
-      currentNode.nextNode = null;
-      this.tail = currentNode;
-      this.size--;
-    }
-  }
-
-  contains(value) {
-    if (this.head === null) {
-      console.log("The list is empty");
-      return false;
-    }
-    let currentNode = this.head;
-    while (currentNode !== null) {
-      if (currentNode.value === value) {
-        return true;
-      } else {
-        currentNode = currentNode.nextNode;
-      }
-    }
-    return false;
-  }
-
-  find(value) {
+  findNodeByKey(key) {
     if (this.head === null) {
       console.log("The list is empty");
       return null;
     }
     let currentNode = this.head;
-    let i = 0;
     while (currentNode !== null) {
-      if (currentNode.value === value) {
-        return i;
+      if (currentNode.key === key) {
+        return currentNode;
       } else {
         currentNode = currentNode.nextNode;
-        i++;
       }
     }
     return null;
   }
-
-  toString() {
-    let string = "";
-    if (this.head === null) {
-      console.log("The list is empty");
-      string += `No items `;
-      return string;
-    }
-    let currentNode = this.head;
-    while (currentNode !== null) {
-      string += `( ${currentNode.value} ) -> `;
-      currentNode = currentNode.nextNode;
-    }
-    string += `null`;
-    return string;
-  }
-
-  insertAt(value, index) {
-    if (index < 0 || index > this.size) {
-      console.log("out of bounds");
-      return;
-    }
-
-    if (index === 0) {
-      this.prepend(value);
-      return;
-    } else if (index === this.size) {
-      this.append(value);
-      return;
-    }
-
-    let currentNode = this.head;
-    let i = 0;
-
-    while (i < index - 1) {
-      currentNode = currentNode.nextNode;
-      i++;
-    }
-
-    let previousNode = currentNode;
-    let newNode = new ListNode(value);
-
-    newNode.nextNode = previousNode.nextNode;
-    previousNode.nextNode = newNode;
-    this.size++;
-  }
-
-  removeAt(index) {
-    if (index < 0 || index >= this.size) {
-      console.log("out of bounds");
-      return;
-    } else if (index === 0) {
-      this.head = this.head.nextNode;
-      this.size--;
-      return;
-    }
-
-    if (index === this.size - 1) {
-      this.pop();
-      return;
-    }
-
-    let currentNode = this.head;
-    let i = 0;
-    while (i < index - 1) {
-      currentNode = currentNode.nextNode;
-      i++;
-    }
-
-    let previousNode = currentNode;
-    let nextNode = currentNode.nextNode.nextNode;
-
-    previousNode.nextNode = nextNode;
-    this.size--;
-  }
 }
 
-let list = new LinkedList();
-list.append("dog");
-list.append("cat");
-list.append("horse");
-list.prepend("snake");
-console.log(list.toString());
+class HashMap {
+  constructor() {
+    this.numBuckets = 16;
+    this.buckets = new Array(this.numBuckets).fill(null);
+    this.loadFactor = 0.75;
+  }
+
+  #hash(key) {
+    let hashCode = 0;
+
+    const primeNumber = 31;
+    for (let i = 0; i < key.length; i++) {
+      hashCode = (primeNumber * hashCode + key.charCodeAt(i)) % this.numBuckets;
+    }
+
+    return hashCode;
+  }
+
+  has(key) {
+    let bucketIndex = this.#hash(key);
+    let bucket = this.buckets[bucketIndex];
+
+    return bucket.findNodeByKey(key) ? true : false;
+  }
+
+  get(key) {
+    let bucketIndex = this.#hash(key);
+    let bucket = this.buckets[bucketIndex];
+
+    if (!bucket) {
+      return null;
+    }
+
+    let node = bucket.findNodeByKey(key);
+    return node ? node.value : null;
+  }
+
+  set(key, value) {
+    let bucketIndex = this.#hash(key);
+    let bucket = this.buckets[bucketIndex];
+
+    if (bucket === null) {
+      bucket = new LinkedList();
+      this.buckets[bucketIndex] = bucket;
+    }
+
+    let node = bucket.findNodeByKey(key);
+    if (!node) {
+      bucket.prepend(key, value);
+    } else {
+      node.value = value;
+    }
+  }
+
+  remove(key) {
+    let bucketIndex = this.#hash(key);
+    let bucket = this.buckets[bucketIndex];
+
+    if (bucket === null) {
+      return false;
+    }
+
+    let node = this.get(key);
+    if (!node) {
+      return false;
+    }
+
+    //Je pense qu'il faut récupérer la fonction find(value)
+    //ça va nous donner l'index du node qu'on cherche
+    //puis puis utiliser removeAt()
+    //car on sait pas où est placé le node lié à key
+    //mais probablement pas besoin du "out of bounds"
+  }
+}
